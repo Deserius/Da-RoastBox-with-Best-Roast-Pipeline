@@ -1,0 +1,74 @@
+================================================================================
+DA ROASTBOX! — MULTI-STAGE AI COMEDY & ROAST ENGINE PIPELINE
+================================================================================
+
+1. OVERVIEW
+-----------
+Da RoastBox! is a 21+ uncensored, dark-mode AI comedy production engine built
+with FastAPI (Python) and a Tailwind/JS frontend. It separates Visual Intelligence
+from Comedy Writing and Editorial Assembly so every roast is grounded in real
+visual observations and user-submitted ammunition.
+
+2. THE 8-STAGE PIPELINE
+-----------------------
+STAGE 1 — IMAGE INGESTION (backend/roast_engine/image_processor.py)
+  - Validates uploaded image bytes via Pillow.
+  - Normalizes EXIF orientation (ImageOps.exif_transpose).
+  - Converts RGBA/P/LA to RGB on a dark background.
+  - Resizes to max 1024x1024 (LANCZOS) and encodes as JPEG base64 data URL.
+
+STAGE 2 — VISUAL INTELLIGENCE (backend/roast_engine/visual_analyzer.py)
+  - Free Tier: OpenRouter `google/gemma-4-26b-a4b-it:free`
+    Fallbacks: `google/gemma-4-31b-it:free`, `nvidia/nemotron-3.5-super-vl:free`
+  - Premium Tier: OpenAI `gpt-4o` (or OpenRouter `openai/gpt-4o`, `anthropic/claude-3.5-sonnet`)
+  - Enforces extraction of at least ONE prominent personal facial/physical
+    feature of the individual (hairline, expression, jawline, eyes, etc.) as
+    Target 1, plus the strongest styling/background detail as Target 2.
+  - Includes a graceful plain-text fallback if a model ignores JSON formatting.
+  - Captures prompt_tokens, completion_tokens, total_tokens, and cost_usd.
+
+STAGE 3 — ROAST AMMUNITION ENGINE (backend/roast_engine/ammo_engine.py)
+  - Parses user-submitted roast ammunition (comma/newline separated).
+  - Scores visual features: A = 0.30*V + 0.25*R + 0.20*C + 0.15*U + 0.10*O
+  - Extracts Top 2 Visual Targets and synthesizes Contextual Combinations
+    linking visual targets with user-submitted facts.
+
+STAGE 4 & 5 — COMEDY STRATEGY & MULTI-STYLE WRITER (backend/roast_engine/comedy_writer.py)
+  - Free Tier: OpenRouter `nvidia/nemotron-3-ultra-550b-a55b:free`
+    Fallbacks: `nvidia/nemotron-3.5-lightning:free`, `baidu/ernie-5.5-flash-preview:free`
+  - Premium Tier: OpenAI `gpt-4o` (or OpenRouter `openai/gpt-4o`, `anthropic/claude-3.5-sonnet`)
+  - Applies Intensity Level (1=Playful to 5=Nuclear) and Comedy Style
+    (Roast Battle, Stand-Up, Dark Comedy, Rap Battle, Satirical, Documentary,
+    Sarcastic, or Writers' Room Blend).
+  - Injects up to 5 selected Roaster Personas (from personas.json) with their
+    quirks_prompt, lingo, and comic_inspiration.
+  - Uses Punchline-First writing and varied comedic techniques (max_tokens=4096).
+  - Includes regex extraction fallback for `"full_joke"` if JSON is truncated.
+
+STAGE 6 & 7 — COMEDY CRITIC & FINAL ASSEMBLY (backend/roast_engine/editorial.py)
+  - Deduplicates near-identical jokes, sorts by quality_score, selects top 8.
+  - Enriches each joke with the assigned roaster's color, ElevenLabs voice_id,
+    and gender-matched Edge-TTS voice.
+  - Builds `full_transcript` (opening_line + 8 jokes + closing_callback).
+
+STAGE 8 — DA ROASTBOX DELIVERY & TTS (backend/tts_service.py, frontend/index.html)
+  - Displays Visual Intelligence Report, AI Telemetry & Cost Card, Audio Bar,
+    and individual Joke Cards.
+  - TTS Options:
+    * Free Neural TTS (`edge-tts` MP3 stream)
+    * Free Browser Speech (`window.speechSynthesis`)
+    * Premium TTS (ElevenLabs `eleven_turbo_v2_5`)
+  - Supports "Play Full Set" (entire transcript) and "Play Voice" (single joke).
+
+3. API ENDPOINTS (backend/main.py)
+----------------------------------
+  - GET  /                     -> Serves frontend/index.html
+  - GET  /assets/*             -> Serves persona 3D graffiti portraits
+  - GET  /api/health           -> Health check
+  - GET  /api/config           -> Intensity levels & comedy styles
+  - GET  /api/personas         -> All 40 roaster personas
+  - GET  /api/settings         -> Persisted settings (masked keys)
+  - POST /api/settings         -> Save settings & run key authenticity checks
+  - POST /api/settings/verify  -> Verify OpenRouter, OpenAI, ElevenLabs keys
+  - POST /api/roast/generate   -> Run 8-stage roast pipeline
+  - POST /api/tts/speak        -> Generate MP3 via Edge-TTS or ElevenLabs

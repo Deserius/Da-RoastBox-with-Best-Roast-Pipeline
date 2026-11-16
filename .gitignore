@@ -1,0 +1,61 @@
+﻿# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+secrets.json
+credentials.json
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+ENV/
+
+# Local runtime and generated data
+.runtime/
+.data/
+mongodb-data/
+mongo-data/
+*.log
+logs/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+.pnpm-store/
+
+# Build output
+dist/
+build/
+coverage/
+.next/
+.cache/
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.old
+*.backup
+~*
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Local application settings containing API credentials
+backend/data/settings.json

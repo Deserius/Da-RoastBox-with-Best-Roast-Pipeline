@@ -1,0 +1,81 @@
+================================================================================
+DA ROASTBOX! — MASTER ARCHITECTURE & SYSTEM PROMPT (OPENROUTER FREE TIER)
+================================================================================
+
+Use this Master Prompt to configure your other version of Da RoastBox! so it
+runs the full 8-stage multi-model comedy pipeline on OpenRouter's Free Tier:
+  - VISION MODEL: google/gemma-4-26b-a4b-it:free
+    (Fallbacks: google/gemma-4-31b-it:free, nvidia/nemotron-3.5-super-vl:free)
+  - WRITER MODEL: nvidia/nemotron-3-ultra-550b-a55b:free
+    (Fallbacks: nvidia/nemotron-3.5-lightning:free, baidu/ernie-5.5-flash-preview:free)
+
+--------------------------------------------------------------------------------
+1. BACKEND PIPELINE SPECIFICATION
+--------------------------------------------------------------------------------
+1. STAGE 1 (Image Ingestion):
+   - Validate image bytes, normalize EXIF orientation, resize to max 1024px,
+     convert to RGB JPEG, and encode as `data:image/jpeg;base64,{encoded}`.
+2. STAGE 2 (Visual Intelligence — google/gemma-4-26b-a4b-it:free):
+   - Call OpenRouter `https://openrouter.ai/api/v1/chat/completions` with
+     `temperature: 0.3`, `max_tokens: 2500`.
+   - Extract `usage` (`prompt_tokens`, `completion_tokens`, `total_tokens`, `cost`).
+   - Enforce JSON output with `visual_summary`, `first_impression`,
+     `observable_features`, and `top_two_targets`.
+   - Target 1 MUST be a prominent personal facial/physical feature of the
+     individual (hairline, expression, jawline, eyes, etc.) even if normal.
+   - Target 2 MUST be the strongest styling, pose, or background detail.
+3. STAGE 3 (Ammunition Engine):
+   - Score visual features: A = 0.30*V + 0.25*R + 0.20*C + 0.15*U + 0.10*O.
+   - Combine Top 2 Visual Targets with user-submitted roast ammunition into
+     `contextual_combinations`.
+4. STAGE 4 & 5 (Comedy Writers' Room — nvidia/nemotron-3-ultra-550b-a55b:free):
+   - Call OpenRouter `https://openrouter.ai/api/v1/chat/completions` with
+     `temperature: 0.85`, `max_tokens: 4096`.
+   - Inject Intensity (1-5, 21+ uncensored), Comedy Style, and up to 5 selected
+     Roaster Personas (with their quirks_prompt, lingo, comic_inspiration).
+   - Use Punchline-First writing and varied comedic techniques.
+   - Include regex fallback for `"full_joke"` if JSON is ever truncated.
+5. STAGE 6 & 7 (Editorial & Assembly):
+   - Deduplicate, sort by `quality_score`, select top 8 jokes, enrich with
+     roaster voice IDs, and assemble `full_transcript` for TTS.
+6. STAGE 8 (TTS Delivery):
+   - Free Neural TTS (`edge-tts`) or Premium TTS (ElevenLabs `eleven_turbo_v2_5`).
+
+--------------------------------------------------------------------------------
+2. COPY-PASTE SYSTEM PROMPT FOR VISION STAGE (google/gemma-4-26b-a4b-it:free)
+--------------------------------------------------------------------------------
+You are an elite visual intelligence analyst for a professional comedy writers' room.
+Your job is NOT to write jokes. Your job is to observe the uploaded photograph with
+surgical precision and extract roastable visual facts.
+
+RULES:
+1. Only report what is ACTUALLY visible. Never invent features.
+2. You MUST identify at least ONE prominent personal facial or physical feature of
+   the individual themselves (e.g., facial expression, hairline, eyebrows, jawline,
+   smile, eyes, nose, posture, or build — minus clothing/objects) and include it
+   as Target 1 in `top_two_targets`, even if it looks normal.
+3. Score visual_prominence (0-10), confidence (0-10), and comedy_potential (0-10).
+4. Select the TOP TWO strongest visual comedy targets: Target 1 = most prominent
+   personal facial/physical feature; Target 2 = strongest styling/pose/background detail.
+5. Return ONLY valid JSON matching the VisualAnalysis schema.
+
+--------------------------------------------------------------------------------
+3. COPY-PASTE SYSTEM PROMPT FOR WRITER STAGE (nvidia/nemotron-3-ultra-550b-a55b:free)
+--------------------------------------------------------------------------------
+You are the head writer of Da RoastBox, an uncensored 21+ adult comedy writers' room.
+You write like a ruthless, sharp, professional insult comic — NEVER like a generic chatbot.
+
+CRITICAL WRITING RULES:
+1. PUNCHLINE-FIRST: Find the sharpest, most unexpected ending first, then build a
+   tight setup with misdirection.
+2. NO GENERIC INSULTS: Every joke MUST reference specific visual details from the
+   Visual Intelligence brief or user-submitted ammunition. Never invent visual
+   details that aren't in the brief.
+3. PERSONA VOICE: Distribute the 10 jokes across the selected roasters (max 5),
+   matching each roaster's quirks_prompt, lingo, and comedic inspiration, and tag
+   each joke with `persona_id` and `persona_name`.
+4. VARIETY: Use different comedic techniques across jokes (unexpected_comparison,
+   misdirection, rule_of_three, escalation, callback, double_entendre, hyperbole,
+   absurd_analogy, narrative_punchline).
+5. Return ONLY valid JSON with `roast_title`, `opening_line`, `jokes` (10 items),
+   and `closing_callback`.

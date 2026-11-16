@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Da RoastBox! — 21+ AI Comedy & Roast Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bg: '#09090e',
+            card: '#12121c',
+            cardHover: '#191927',
+            border: '#242438',
+            accent: '#ff4500',
+            amber: '#f59e0b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #09090e; color: #f4f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; }
+    .glow-btn { box-shadow: 0 0 24px rgba(255, 69, 0, 0.35); }
+    .glow-btn:hover { box-shadow: 0 0 32px rgba(255, 69, 0, 0.55); }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #09090e; }
+    ::-webkit-scrollbar-thumb { background: #242438; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navbar -->
+  <header class="border-b border-border bg-card/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xl font-black shadow-lg">
+          🔥
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-extrabold tracking-tight text-white">Da RoastBox!</h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 rounded-full">21+ Uncensored</span>
+          </div>
+          <p class="text-xs text-zinc-400">Multi-Stage AI Comedy Writers' Room</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div id="headerTierBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg border border-border text-xs text-zinc-300">
+          <span id="keyStatusDot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
+          <span id="headerTierText">Free Tier (OpenRouter)</span>
+        </div>
+        <button onclick="openSettings()" class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium text-white transition">
+          <span>⚙️</span>
+          <span>Settings & API Keys</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Upload & Controls -->
+    <section class="lg:col-span-5 space-y-5">
+      <!-- Image Upload -->
+      <div class="bg-card border border-border rounded-2xl p-5">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400 mb-3">1. Target Photo</h2>
+        <label id="dropZone" class="relative flex flex-col items-center justify-center w-full h-60 border-2 border-dashed border-zinc-700 hover:border-orange-500 rounded-xl cursor-pointer bg-bg/60 transition overflow-hidden group">
+          <input id="imageInput" type="file" accept="image/*" class="hidden" onchange="handleImageSelect(event)" />
+          <div id="uploadPlaceholder" class="flex flex-col items-center text-center p-4">
+            <div class="text-4xl mb-2 group-hover:scale-110 transition">📸</div>
+            <p class="text-sm font-semibold text-zinc-200">Drop a photo here or click to upload</p>
+            <p class="text-xs text-zinc-500 mt-1">JPG, PNG, WEBP • Auto-resized & EXIF-normalized</p>
+          </div>
+          <img id="imagePreview" class="hidden w-full h-full object-contain bg-black/50" alt="Target preview" />
+        </label>
+      </div>
+
+      <!-- User Ammunition -->
+      <div class="bg-card border border-border rounded-2xl p-5">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400 mb-2">2. Roast Ammunition (Optional)</h2>
+        <p class="text-xs text-zinc-500 mb-3">Feed the writers' room personal context (comma-separated).</p>
+        <textarea id="userAmmo" rows="3" placeholder="e.g., Always late, thinks he's a DJ, never pays people back, drives a 2004 Honda Civic..." class="w-full bg-bg border border-border focus:border-orange-500 rounded-xl p-3 text-sm text-white placeholder-zinc-600 outline-none transition"></textarea>
+      </div>
+
+      <!-- Intensity & Style -->
+      <div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">3. Roast Intensity</h2>
+            <span id="intensityLabel" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400">4/5 — Brutal</span>
+          </div>
+          <input id="intensitySlider" type="range" min="1" max="5" value="4" oninput="updateIntensityLabel(this.value)" class="w-full accent-orange-500 cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-zinc-500 mt-1">
+            <span>Playful</span><span>Spicy</span><span>Savage</span><span>Brutal</span><span>Nuclear</span>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400 mb-2">4. Comedy Persona</h2>
+          <select id="styleSelect" class="w-full bg-bg border border-border focus:border-orange-500 rounded-xl p-3 text-sm text-white outline-none">
+            <option value="roast_battle">🔥 Roast Battle — Direct, rapid-fire, devastating closers</option>
+            <option value="stand_up">🎤 Stand-Up Comedian — Setup, misdirection, killer tag</option>
+            <option value="dark_comedy">🖤 Dark Comedy — Twisted, absurd, theatrical</option>
+            <option value="rap_battle">🎧 Rap Battle Writer — Internal rhymes & wordplay</option>
+            <option value="satirical">📰 Satirical Commentator — Mock-serious reporting</option>
+            <option value="documentary">🎬 Documentary Narrator — Deadpan nature/crime doc</option>
+            <option value="sarcastic">😏 Sarcastic Commentator — Surgical, dismissive wit</option>
+            <option value="blend">🎭 Writers' Room Blend — 40% Roast / 30% Dark / 30% Stand-Up</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">5. Select Roasters (Max 5)</h2>
+            <span id="roasterCount" class="text-xs font-bold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300">0 / 5</span>
+          </div>
+          <input id="roasterSearch" type="text" placeholder="Search 40 roasters..." oninput="renderRoasterPicker()" class="w-full bg-bg border border-border rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-600 mb-2 outline-none" />
+          <div id="roasterGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+
+        <button id="generateBtn" onclick="generateRoast()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-white font-extrabold text-base tracking-wide glow-btn transition disabled:opacity-50 disabled:cursor-not-allowed">
+          🔥 LAUNCH ROAST PIPELINE
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Column: Pipeline & Results -->
+    <section class="lg:col-span-7 space-y-5">
+
+      <!-- Pipeline Progress -->
+      <div id="pipelineCard" class="bg-card border border-border rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">Production Pipeline</h2>
+          <span id="pipelineTimer" class="text-xs text-zinc-500">Ready</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center text-xs">
+          <div id="step1" class="p-2 rounded-lg bg-bg border border-border text-zinc-500">1. Ingestion</div>
+          <div id="step2" class="p-2 rounded-lg bg-bg border border-border text-zinc-500">2. Vision AI</div>
+          <div id="step3" class="p-2 rounded-lg bg-bg border border-border text-zinc-500">3. Ammo & Writers</div>
+          <div id="step4" class="p-2 rounded-lg bg-bg border border-border text-zinc-500">4. Critic & TTS</div>
+        </div>
+      </div>
+
+      <!-- Error Banner -->
+      <div id="errorBanner" class="hidden bg-red-950/60 border border-red-500/50 text-red-200 rounded-2xl p-4 text-sm"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="bg-card border border-border rounded-2xl p-10 text-center">
+        <div class="text-5xl mb-3">🎙️</div>
+        <h3 class="text-lg font-bold text-white">The Stage is Set</h3>
+        <p class="text-sm text-zinc-400 max-w-md mx-auto mt-1">
+          Upload a target photo, optionally add roast ammunition, and hit <strong class="text-orange-400">Launch Roast Pipeline</strong>. Make sure your OpenRouter (Free) or OpenAI (Premium) key is configured in Settings.
+        </p>
+      </div>
+
+      <!-- Results Container -->
+      <div id="resultsContainer" class="hidden space-y-5">
+
+        <!-- Visual Intelligence Summary -->
+        <div class="bg-card border border-border rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-amber-400">👁️ Visual Intelligence Report</h3>
+            <span id="modelMeta" class="text-[11px] text-zinc-500"></span>
+          </div>
+          <p id="firstImpression" class="text-sm font-semibold text-white mb-2"></p>
+          <p id="visualSummary" class="text-xs text-zinc-400 mb-3"></p>
+          <div id="topTargets" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- AI Telemetry & Cost Card -->
+        <div class="bg-card border border-border rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">📊 AI Models, Token Usage & Cost</h3>
+            <span id="totalCostBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">$0.0000</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-bg border border-border rounded-xl p-3">
+              <div class="text-zinc-400 font-semibold mb-1">Vision Stage</div>
+              <div id="telVisionModel" class="text-white font-mono text-[11px] truncate"></div>
+              <div id="telVisionStats" class="text-zinc-400 mt-1"></div>
+            </div>
+            <div class="bg-bg border border-border rounded-xl p-3">
+              <div class="text-zinc-400 font-semibold mb-1">Comedy Writer Stage</div>
+              <div id="telWriterModel" class="text-white font-mono text-[11px] truncate"></div>
+              <div id="telWriterStats" class="text-zinc-400 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Playback Bar -->
+        <div class="bg-gradient-to-r from-zinc-900 to-card border border-orange-500/30 rounded-2xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 id="roastTitle" class="text-lg font-extrabold text-white"></h3>
+              <p id="roastStats" class="text-xs text-zinc-400"></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="playFullSet()" id="playAllBtn" class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition flex items-center gap-2">
+                <span>🔊</span> Play Full Set
+              </button>
+              <button onclick="stopAudio()" class="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition">
+                ⏹ Stop
+              </button>
+            </div>
+          </div>
+          <audio id="audioPlayer" controls class="hidden w-full mt-3 h-10"></audio>
+        </div>
+
+        <!-- Jokes List -->
+        <div id="jokesList" class="space-y-3"></div>
+
+        <!-- Closing Callback -->
+        <div id="closingCard" class="bg-card border border-red-500/30 rounded-2xl p-5">
+          <div class="text-xs font-bold uppercase tracking-wider text-red-400 mb-1">🎤 Mic-Drop Closer</div>
+          <p id="closingText" class="text-base font-bold text-white"></p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-card border border-border rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-border pb-3">
+        <h2 class="text-lg font-extrabold text-white">⚙️ API Keys & Engine Settings</h2>
+        <button onclick="closeSettings()" class="text-zinc-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <!-- Tier & TTS Selection -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">AI Generation Tier</label>
+          <select id="setTier" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white">
+            <option value="free">Free Tier (OpenRouter)</option>
+            <option value="premium">Premium Tier (OpenAI GPT-4o)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">TTS Voice Engine</label>
+          <select id="setTts" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white">
+            <option value="edge">Free Neural TTS (Edge-TTS)</option>
+            <option value="browser">Free Browser Speech (Instant)</option>
+            <option value="elevenlabs">Premium TTS (ElevenLabs)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- API Keys -->
+      <div class="space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold uppercase text-zinc-400">OpenRouter API Key (Free Tier)</label>
+            <span id="statusOpenRouter" class="text-[11px] text-zinc-500">Not checked</span>
+          </div>
+          <input id="keyOpenRouter" type="password" placeholder="sk-or-v1-..." class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white" />
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold uppercase text-zinc-400">OpenAI API Key (Premium Tier)</label>
+            <span id="statusOpenAI" class="text-[11px] text-zinc-500">Not checked</span>
+          </div>
+          <input id="keyOpenAI" type="password" placeholder="sk-..." class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white" />
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold uppercase text-zinc-400">ElevenLabs API Key (Premium TTS)</label>
+            <span id="statusElevenLabs" class="text-[11px] text-zinc-500">Not checked</span>
+          </div>
+          <input id="keyElevenLabs" type="password" placeholder="xi-api-key..." class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">OpenRouter Vision Model</label>
+            <select id="setVisionModel" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white">
+              <optgroup label="Free Tier">
+                <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
+                <option value="google/gemma-4-31b-it:free">Gemma 4 31B Vision (Free)</option>
+                <option value="nvidia/nemotron-3.5-super-vl:free">Nemotron 3.5 Super VL (Free)</option>
+              </optgroup>
+              <optgroup label="Premium (OpenRouter)">
+                <option value="openai/gpt-4o">GPT-4o (Premium)</option>
+                <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (Premium)</option>
+                <option value="google/gemini-2.5-pro-preview">Gemini 2.5 Pro (Premium)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">OpenRouter Writer Model</label>
+            <select id="setWriterModel" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white">
+              <optgroup label="Free Tier">
+                <option value="nvidia/nemotron-3-ultra-550b-a55b:free">Nemotron 3 Ultra 550B (Free)</option>
+                <option value="nvidia/nemotron-3.5-lightning:free">Nemotron 3.5 Lightning (Free)</option>
+                <option value="baidu/ernie-5.5-flash-preview:free">ERNIE 5.5 Flash (Free)</option>
+              </optgroup>
+              <optgroup label="Premium (OpenRouter)">
+                <option value="openai/gpt-4o">GPT-4o (Premium)</option>
+                <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (Premium)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Free Neural Voice</label>
+            <select id="setEdgeVoice" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white">
+              <option value="en-US-GuyNeural">Guy (US Male - Punchy)</option>
+              <option value="en-US-AndrewNeural">Andrew (US Male - Warm)</option>
+              <option value="en-US-JennyNeural">Jenny (US Female)</option>
+              <option value="en-GB-RyanNeural">Ryan (UK Male - Sarcastic)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">ElevenLabs Voice ID</label>
+            <input id="setElevenVoice" type="text" value="21m00Tcm4TlvDq8ikWAM" class="w-full bg-bg border border-border rounded-xl p-2.5 text-sm text-white" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2 border-t border-border">
+        <button onclick="closeSettings()" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm text-zinc-300">Cancel</button>
+        <button id="saveSettingsBtn" onclick="saveAndVerifySettings()" class="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm font-bold text-white">
+          Save & Verify Keys
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    let currentResult = null;
+    let currentTtsEngine = "edge";
+    let allPersonas = [];
+    let selectedPersonas = [];
+
+    async function loadPersonas() {
+      try {
+        const resp = await fetch("/api/personas");
+        const data = await resp.json();
+        allPersonas = data.personas || [];
+        renderRoasterPicker();
+      } catch (e) {
+        console.error("Failed to load personas", e);
+      }
+    }
+
+    function renderRoasterPicker() {
+      const q = (document.getElementById("roasterSearch")?.value || "").toLowerCase();
+      const grid = document.getElementById("roasterGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      allPersonas
+        .filter(p => !q || p.displayName.toLowerCase().includes(q) || p.role.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q))
+        .forEach(p => {
+          const isSelected = selectedPersonas.includes(p.id);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.onclick = () => togglePersona(p.id);
+          btn.className = `text-center p-1.5 rounded-xl border text-xs transition flex flex-col items-center ${
+            isSelected
+              ? "bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500/50"
+              : "bg-bg border-border hover:border-zinc-600 text-zinc-300"
+          }`;
+          btn.innerHTML = `
+            <img src="/assets/personas/${p.id}.png?v=2" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" class="w-full aspect-square rounded-lg object-cover mb-1.5 border border-zinc-800" alt="${p.displayName}" />
+            <span style="display:none;background:${p.color}22;color:${p.color};border:1px solid ${p.color}55" class="w-full aspect-square rounded-lg mb-1.5 items-center justify-center font-black text-base">${p.displayName.slice(0,2).toUpperCase()}</span>
+            <div class="font-bold text-[11px] leading-tight truncate w-full">${p.displayName}</div>
+            <div class="text-[9px] text-zinc-400 truncate w-full mt-0.5">${p.role}</div>
+          `;
+          grid.appendChild(btn);
+        });
+      document.getElementById("roasterCount").textContent = `${selectedPersonas.length} / 5`;
+    }
+
+    function togglePersona(id) {
+      if (selectedPersonas.includes(id)) {
+        selectedPersonas = selectedPersonas.filter(x => x !== id);
+      } else {
+        if (selectedPersonas.length >= 5) {
+          alert("Maximum 5 roasters can be selected!");
+          return;
+        }
+        selectedPersonas.push(id);
+      }
+      renderRoasterPicker();
+    }
+
+    const INTENSITY_NAMES = {
+      1: "1/5 — Playful",
+      2: "2/5 — Spicy",
+      3: "3/5 — Savage",
+      4: "4/5 — Brutal",
+      5: "5/5 — Nuclear"
+    };
+
+    function updateIntensityLabel(val) {
+      document.getElementById("intensityLabel").textContent = INTENSITY_NAMES[val] || "4/5 — Brutal";
+    }
+
+    function handleImageSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById("uploadPlaceholder").classList.add("hidden");
+        const img = document.getElementById("imagePreview");
+        img.src = ev.target.result;
+        img.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setStep(activeIdx) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById("step" + i);
+        if (i < activeIdx) {
+          el.className = "p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-semibold";
+        } else if (i === activeIdx) {
+          el.className = "p-2 rounded-lg bg-orange-500/20 border border-orange-500/50 text-orange-300 font-bold animate-pulse";
+        } else {
+          el.className = "p-2 rounded-lg bg-bg border border-border text-zinc-500";
+        }
+      }
+    }
+
+    async function generateRoast() {
+      const errBanner = document.getElementById("errorBanner");
+      errBanner.classList.add("hidden");
+
+      if (!selectedFile) {
+        errBanner.textContent = "Please upload a target photo first!";
+        errBanner.classList.remove("hidden");
+        return;
+      }
+
+      const btn = document.getElementById("generateBtn");
+      btn.disabled = true;
+      btn.textContent = "🔥 ROASTING IN PROGRESS...";
+      document.getElementById("emptyState").classList.add("hidden");
+      document.getElementById("resultsContainer").classList.add("hidden");
+      document.getElementById("pipelineTimer").textContent = "Running...";
+
+      setStep(1);
+      setTimeout(() => setStep(2), 600);
+      setTimeout(() => setStep(3), 2500);
+
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      formData.append("user_ammo", document.getElementById("userAmmo").value);
+      formData.append("intensity", document.getElementById("intensitySlider").value);
+      formData.append("style", document.getElementById("styleSelect").value);
+      formData.append("personas", selectedPersonas.join(","));
+
+      try {
+        const resp = await fetch("/api/roast/generate", { method: "POST", body: formData });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || "Generation failed");
+
+        setStep(5); // all done
+        document.getElementById("pipelineTimer").textContent = `Completed in ${data.elapsed_seconds}s`;
+        currentResult = data;
+        renderResults(data);
+      } catch (err) {
+        setStep(0);
+        document.getElementById("pipelineTimer").textContent = "Failed";
+        errBanner.textContent = "Error: " + err.message;
+        errBanner.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🔥 LAUNCH ROAST PIPELINE";
+      }
+    }
+
+    function renderResults(data) {
+      document.getElementById("resultsContainer").classList.remove("hidden");
+
+      const va = data.visual_analysis;
+      document.getElementById("firstImpression").textContent = va.first_impression || "Target analyzed.";
+      document.getElementById("visualSummary").textContent = va.visual_summary || "";
+      document.getElementById("modelMeta").textContent = `Vision: ${data.vision_model} • Writer: ${data.writer_model}`;
+
+      const tel = data.telemetry || {};
+      const vTel = tel.vision || {};
+      const wTel = tel.writer || {};
+      document.getElementById("totalCostBadge").textContent = `Total: $${Number(tel.total_cost_usd || 0).toFixed(4)} (${(tel.total_tokens || 0).toLocaleString()} tokens)`;
+      document.getElementById("telVisionModel").textContent = vTel.model || data.vision_model;
+      document.getElementById("telVisionStats").textContent = `${(vTel.total_tokens || 0).toLocaleString()} tokens (in: ${vTel.prompt_tokens || 0}, out: ${vTel.completion_tokens || 0}) • $${Number(vTel.cost_usd || 0).toFixed(4)}`;
+      document.getElementById("telWriterModel").textContent = wTel.model || data.writer_model;
+      document.getElementById("telWriterStats").textContent = `${(wTel.total_tokens || 0).toLocaleString()} tokens (in: ${wTel.prompt_tokens || 0}, out: ${wTel.completion_tokens || 0}) • $${Number(wTel.cost_usd || 0).toFixed(4)}`;
+
+      const targetsEl = document.getElementById("topTargets");
+      targetsEl.innerHTML = "";
+      (va.top_two_targets || []).forEach(t => {
+        const badge = document.createElement("span");
+        badge.className = "px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium";
+        badge.textContent = `🎯 ${t.feature_reference}`;
+        targetsEl.appendChild(badge);
+      });
+
+      const r = data.roast;
+      document.getElementById("roastTitle").textContent = r.roast_title || "Da RoastBox Set";
+      document.getElementById("roastStats").textContent = `${r.total_jokes} jokes • Avg Critic Score: ${r.avg_quality_score}/100`;
+
+      const list = document.getElementById("jokesList");
+      list.innerHTML = "";
+      (r.jokes || []).forEach((j, idx) => {
+        const card = document.createElement("div");
+        card.className = "bg-card border border-border hover:border-zinc-700 rounded-2xl p-4 transition";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-orange-400">#${idx + 1}</span>
+              <span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[11px] font-medium">${j.comedic_technique || "roast"}</span>
+            </div>
+            <span class="text-xs font-bold text-emerald-400">Score: ${j.quality_score}/100</span>
+          </div>
+          <p class="text-sm text-zinc-100 leading-relaxed mb-3">${j.full_joke}</p>
+          <div class="flex items-center gap-2">
+            <button onclick="speakText(${idx})" class="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-orange-500/20 hover:text-orange-300 text-xs font-medium text-zinc-300 transition">
+              🔊 Play Voice
+            </button>
+            <button onclick="copyText(${idx})" class="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-400 transition">
+              📋 Copy
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      document.getElementById("closingText").textContent = r.closing_callback || "";
+    }
+
+    async function speakText(idx) {
+      if (!currentResult) return;
+      const text = currentResult.roast.jokes[idx].full_joke;
+      await playTTS(text);
+    }
+
+    async function playFullSet() {
+      if (!currentResult) return;
+      await playTTS(currentResult.roast.full_transcript);
+    }
+
+    async function playTTS(text) {
+      stopAudio();
+      if (currentTtsEngine === "browser") {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.05;
+        window.speechSynthesis.speak(utter);
+        return;
+      }
+
+      const player = document.getElementById("audioPlayer");
+      try {
+        const resp = await fetch("/api/tts/speak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, engine: currentTtsEngine })
+        });
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || "TTS failed");
+        }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        player.src = url;
+        player.classList.remove("hidden");
+        player.play();
+      } catch (err) {
+        alert("TTS Error: " + err.message);
+      }
+    }
+
+    function stopAudio() {
+      window.speechSynthesis.cancel();
+      const player = document.getElementById("audioPlayer");
+      player.pause();
+      player.currentTime = 0;
+    }
+
+    function copyText(idx) {
+      if (!currentResult) return;
+      navigator.clipboard.writeText(currentResult.roast.jokes[idx].full_joke);
+    }
+
+    // Settings Modal Logic
+    function openSettings() {
+      document.getElementById("settingsModal").classList.remove("hidden");
+    }
+    function closeSettings() {
+      document.getElementById("settingsModal").classList.add("hidden");
+    }
+
+    function renderCheckBadge(elId, check) {
+      const el = document.getElementById(elId);
+      if (!check) return;
+      if (check.valid) {
+        el.className = "text-[11px] font-semibold text-emerald-400";
+        el.textContent = "✅ " + check.message;
+      } else if (check.status === "not_set") {
+        el.className = "text-[11px] text-zinc-500";
+        el.textContent = "⚪ Not set";
+      } else {
+        el.className = "text-[11px] font-semibold text-red-400";
+        el.textContent = "❌ " + check.message;
+      }
+    }
+
+    async function loadInitialSettings() {
+      try {
+        const resp = await fetch("/api/settings");
+        const s = await resp.json();
+        document.getElementById("setTier").value = s.preferred_tier || "free";
+        document.getElementById("setTts").value = s.preferred_tts || "edge";
+        document.getElementById("setVisionModel").value = s.openrouter_vision_model || "google/gemma-4-26b-a4b-it:free";
+        document.getElementById("setWriterModel").value = s.openrouter_writer_model || "nvidia/nemotron-3-ultra-550b-a55b:free";
+        document.getElementById("setEdgeVoice").value = s.edge_tts_voice || "en-US-GuyNeural";
+        document.getElementById("setElevenVoice").value = s.elevenlabs_voice_id || "21m00Tcm4TlvDq8ikWAM";
+        currentTtsEngine = s.preferred_tts || "edge";
+
+        if (s.has_openrouter_key) document.getElementById("keyOpenRouter").placeholder = s.masked_openrouter_key;
+        if (s.has_openai_key) document.getElementById("keyOpenAI").placeholder = s.masked_openai_key;
+        if (s.has_elevenlabs_key) document.getElementById("keyElevenLabs").placeholder = s.masked_elevenlabs_key;
+
+        document.getElementById("headerTierText").textContent =
+          s.preferred_tier === "premium" ? "Premium Tier (OpenAI)" : "Free Tier (OpenRouter)";
+
+        // Run initial authenticity check
+        const vResp = await fetch("/api/settings/verify", { method: "POST" });
+        const checks = await vResp.json();
+        renderCheckBadge("statusOpenRouter", checks.openrouter);
+        renderCheckBadge("statusOpenAI", checks.openai);
+        renderCheckBadge("statusElevenLabs", checks.elevenlabs);
+
+        const dot = document.getElementById("keyStatusDot");
+        if (checks.openrouter?.valid || checks.openai?.valid) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        }
+      } catch (e) {
+        console.error("Failed to load settings", e);
+      }
+    }
+
+    async function saveAndVerifySettings() {
+      const btn = document.getElementById("saveSettingsBtn");
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+
+      const payload = {
+        preferred_tier: document.getElementById("setTier").value,
+        preferred_tts: document.getElementById("setTts").value,
+        openrouter_vision_model: document.getElementById("setVisionModel").value,
+        openrouter_writer_model: document.getElementById("setWriterModel").value,
+        edge_tts_voice: document.getElementById("setEdgeVoice").value,
+        elevenlabs_voice_id: document.getElementById("setElevenVoice").value,
+      };
+
+      const orKey = document.getElementById("keyOpenRouter").value.trim();
+      const oaKey = document.getElementById("keyOpenAI").value.trim();
+      const elKey = document.getElementById("keyElevenLabs").value.trim();
+      if (orKey) payload.openrouter_api_key = orKey;
+      if (oaKey) payload.openai_api_key = oaKey;
+      if (elKey) payload.elevenlabs_api_key = elKey;
+
+      try {
+        const resp = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const res = await resp.json();
+        renderCheckBadge("statusOpenRouter", res.checks.openrouter);
+        renderCheckBadge("statusOpenAI", res.checks.openai);
+        renderCheckBadge("statusElevenLabs", res.checks.elevenlabs);
+
+        currentTtsEngine = payload.preferred_tts;
+        document.getElementById("headerTierText").textContent =
+          payload.preferred_tier === "premium" ? "Premium Tier (OpenAI)" : "Free Tier (OpenRouter)";
+
+        const dot = document.getElementById("keyStatusDot");
+        dot.className = (res.checks.openrouter?.valid || res.checks.openai?.valid)
+          ? "w-2 h-2 rounded-full bg-emerald-400"
+          : "w-2 h-2 rounded-full bg-red-400";
+      } catch (err) {
+        alert("Failed to save settings: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save & Verify Keys";
+      }
+    }
+
+    loadInitialSettings();
+    loadPersonas();
+  </script>
+</body>
+</html>
